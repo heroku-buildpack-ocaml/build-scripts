@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# bin/compile <build-dir> <cache-dir>
+
+set -e
+set -o pipefail
+urls=(
+https://github.com/heroku-buildpack-ocaml/build-scripts/raw/master/files/gdbm-1.10.tgz
+https://github.com/heroku-buildpack-ocaml/build-scripts/raw/master/files/pcre.tgz
+https://codefirst.org/mzp/ocamlbrew-4.00.1_1.tgz
+)
+
+function indent() {
+  c='s/^/       /'
+  case $(uname) in
+    Darwin) sed -l "$c";;
+    *)      sed -u "$c";;
+  esac
+}
+
+function setup() {
+  dir=$1
+  url=$2
+
+  mkdir -p $dir
+
+  echo "fetching $url"
+  curl -L $url -s -o - | tar xzf - -C $dir
+}
+
+cd $BUILD_DIR
+echo "-----> Fetching runtime"
+for url in ${urls[@]}; do
+  setup /app/vendor/$(basename $url .tgz | sed 's/-[^-]*$//') $url
+done
+
+echo "-----> Setup LD_PRELOAD"
+export LD_PRELOAD=/app/vendor/pcre/lib/libpcre.so.1
+
+echo "-----> Setup OCamlbrew"
+source /app/vendor/ocamlbrew/ocaml-4.00.1/etc/ocamlbrew.bashrc
+export PATH="/app/vendor/pcre/bin:$PATH"
+# restore OPAM directory
+opam remote add myrepo https://github.com/heroku-buildpack-ocaml/opam-repo.git
+opam install -v -y eliom macaque
