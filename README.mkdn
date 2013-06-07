@@ -1,0 +1,15 @@
+Build scripts for heroku-buildpack-ocaml
+========================================
+
+This is build scripts for Heroku-buildpack-ocaml hackers.
+
+Prerequires
+------------------------
+
+    gem install vulcan
+
+
+Seealso
+-------------------------
+
+ * https://devcenter.heroku.com/articles/buildpack-binaries
